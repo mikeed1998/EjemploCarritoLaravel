@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 
 use Auth;
+use Session;
 
 class UserController extends Controller
 {
@@ -26,6 +27,14 @@ class UserController extends Controller
 
         $user->save();
 
+        Auth::login($user);
+
+        if(Session::has('oldUrl')) {
+            $oldUrl = Session::get('oldUrl');
+            Session::forget('oldUrl');
+            return redirect()->to($oldUrl);
+        }
+
         return redirect()->route('product.index');
     }
 
@@ -40,6 +49,11 @@ class UserController extends Controller
         ]);
 
         if(Auth::attempt(['email' => $request['email'], 'password' => $request['password']])) {
+            if(Session::has('oldUrl')) {
+                $oldUrl = Session::get('oldUrl');
+                Session::forget('oldUrl');
+                return redirect()->to($oldUrl);
+            }
             return redirect()->route('user.profile');
         }
 
@@ -47,11 +61,16 @@ class UserController extends Controller
     }
 
     public function getProfile() {
-        return view('user.profile');
+        $orders = Auth::user()->orders;
+        $orders->transform(function($order, $key) {
+            $order->cart = unserialize($order->cart);
+            return $order;
+        });
+        return view('user.profile', compact('orders'));
     }
 
     public function getLogout() {
         Auth::logout();
-        return redirect()->back();
+        return redirect()->route('user.signin');
     }
 }

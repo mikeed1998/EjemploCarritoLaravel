@@ -18,8 +18,11 @@ use App\Http\Controllers\UserController;
 Route::get('/', [ProductController::class, 'getIndex'])->name('product.index');
 Route::get('/add-to-cart/{id}', [ProductController::class, 'getAddToCart'])->name('product.addToCart');
 Route::get('/shopping-cart/', [ProductController::class, 'getCart'])->name('product.shoppingCart');
-Route::get('/checkout', [ProductController::class, 'getCheckout'])->name('checkout');
-Route::post('/checkout', [ProductController::class, 'postCheckout'])->name('checkout');
+Route::get('/reduce/{id}', [ProductController::class, 'getReduceByOne'])->name('product.reduceByOne');
+Route::get('/remove/{id}', [ProductController::class, 'getRemoveItem'])->name('product.remove');
+
+Route::get('/checkout', [ProductController::class, 'getCheckout'])->name('checkout')->middleware('auth');
+Route::post('/checkout', [ProductController::class, 'postCheckout'])->name('checkout')->middleware('auth');
 
 Route::get('/signup', [UserController::class, 'getSignup'])->name('user.signup')->middleware('guest');
 Route::post('/signup', [UserController::class, 'postSignup'])->name('user.signup')->middleware('guest');

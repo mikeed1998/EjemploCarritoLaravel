@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Product;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Session;
+use Auth;
 use Stripe\Charge;
 use Stripe\Stripe;
 
@@ -25,6 +27,34 @@ class ProductController extends Controller
         $request->session()->put('cart', $cart);
         // dd($request->session()->get('cart'));
         return redirect()->route('product.index');
+    }
+
+    public function getReduceByOne($id) {
+        $oldCart = Session::has('cart') ? Session::get('cart') : null;
+        $cart = new Cart($oldCart);
+        $cart->reduceByOne($id);
+
+        if(count($cart->items) > 0) {
+            Session::put('cart', $cart);
+        } else {
+            Session::forget('cart');
+        }
+
+        return redirect()->route('product.shoppingCart');
+    }
+
+    public function getRemoveItem($id) {
+        $oldCart = Session::has('cart') ? Session::get('cart') : null;
+        $cart = new Cart($oldCart);
+        $cart->removeItem($id);
+
+        if(count($cart->items) > 0) {
+            Session::put('cart', $cart);
+        } else {
+            Session::forget('cart');
+        }
+
+        return redirect()->route('product.shoppingCart');
     }
 
     public function getCart() {
@@ -58,13 +88,20 @@ class ProductController extends Controller
 
         Stripe::setApiKey('sk_test_51Nb8P9Kuq6E1vXOyXhk1dDg9nNnmZ8y5Beo9eIaHvdGkvTNhOcmYYxIMpEm2YScJOWWJSBXCCaPDvCUwzTaUcRvg00a0oFXRax');
         try {
-            Charge::create(array(
+            $charge = Charge::create(array(
                 "amount" => $cart->totalPrice * 100,
                 "currency" => "usd",
-                // "source" => $request->input('stripeToken'), // Obtained with Stripe.js
+                // "source" => $request->input('stripeToken'), // Obtained with Stripe.js source or customer
                 "source" => "tok_mastercard",
                 "description" => "Test Charge"
             ));
+            $order = new Order();
+            $order->cart = serialize($cart);
+            $order->address = $request->input('address');
+            $order->name = $request->input('name');
+            $order->payment_id = $charge->id;
+
+            Auth::user()->orders()->save($order);
         } catch(\Exception $e) {
             return redirect()->route('checkout')->with('error', $e->getMessage());
         }
@@ -73,3 +110,6 @@ class ProductController extends Controller
         return redirect()->route('product.index')->with('success', 'Successfully purchased products!');
     }
 }
+
+
+
