@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Session;
+use Stripe\Charge;
 use Stripe\Stripe;
 
 class ProductController extends Controller
@@ -48,13 +49,27 @@ class ProductController extends Controller
     }
 
     public function postCheckout(Request $request) {
-        if(!$session::has('cart')) {
+        if(!Session::has('cart')) {
             return redirect()->route('product.shoppingCart');
         }
 
         $oldCart = Session::get('cart');
         $cart = new Cart($oldCart);
 
-        
+        Stripe::setApiKey('sk_test_51Nb8P9Kuq6E1vXOyXhk1dDg9nNnmZ8y5Beo9eIaHvdGkvTNhOcmYYxIMpEm2YScJOWWJSBXCCaPDvCUwzTaUcRvg00a0oFXRax');
+        try {
+            Charge::create(array(
+                "amount" => $cart->totalPrice * 100,
+                "currency" => "usd",
+                // "source" => $request->input('stripeToken'), // Obtained with Stripe.js
+                "source" => "tok_mastercard",
+                "description" => "Test Charge"
+            ));
+        } catch(\Exception $e) {
+            return redirect()->route('checkout')->with('error', $e->getMessage());
+        }
+
+        Session::forget('cart');
+        return redirect()->route('product.index')->with('success', 'Successfully purchased products!');
     }
 }

@@ -69,6 +69,7 @@
 @endsection
 
 @section('scripts')
+<script type="text/javascript" src="/javascripts/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
     <script type="text/javascript" src="{{ asset('src/css/js/checkout.js') }}"></script>
 @endsection
