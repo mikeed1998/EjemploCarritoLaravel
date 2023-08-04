@@ -16,10 +16,10 @@ use App\Http\Controllers\UserController;
 */
 
 Route::get('/', [ProductController::class, 'getIndex'])->name('product.index');
-Route::get('/add-to-cart/{id}', [ProductController::class, 'getAddToCart'])->name('product.addToCart');
-Route::get('/shopping-cart/', [ProductController::class, 'getCart'])->name('product.shoppingCart');
-Route::get('/reduce/{id}', [ProductController::class, 'getReduceByOne'])->name('product.reduceByOne');
-Route::get('/remove/{id}', [ProductController::class, 'getRemoveItem'])->name('product.remove');
+Route::get('/add-to-cart/{id}', [ProductController::class, 'getAddToCart'])->name('product.addToCart')->middleware('auth');;
+Route::get('/shopping-cart/', [ProductController::class, 'getCart'])->name('product.shoppingCart')->middleware('auth');
+Route::get('/reduce/{id}', [ProductController::class, 'getReduceByOne'])->name('product.reduceByOne')->middleware('auth');;
+Route::get('/remove/{id}', [ProductController::class, 'getRemoveItem'])->name('product.remove')->middleware('auth');;
 
 Route::get('/checkout', [ProductController::class, 'getCheckout'])->name('checkout')->middleware('auth');
 Route::post('/checkout', [ProductController::class, 'postCheckout'])->name('checkout')->middleware('auth');
